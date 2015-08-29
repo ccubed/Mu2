@@ -48,16 +48,17 @@
 &CMD`JOB MuReq=$+job *:@assert [u(FN`EXISTS,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;@assert [u(FN`CAN_VIEW,%#,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bNo permission to view job.;@pemit %#=[u(FN`DISPLAY_JOB,%0)]
 
 @@ Command: +job/comment <id>=<text>. Purpose: Add comment to job <id> with text of <text>
-&CMD`JOB_COMMENT MuReq=$+job/comment *=*:@assert [u(FN`EXISTS,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;@assert [u(FN`CAN_WRITE,%#,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bNo permission to write to job.;INSERT COMMENT
+&CMD`JOB_COMMENT MuReq=$+job/comment *=*:@assert [u(FN`EXISTS,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;@assert [u(FN`CAN_WRITE,%#,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bNo permission to write to job.;@pemit %#=[u(FN`INSERT_COMMENT,%0,%1,0)]
 
 @@ Command: +job/add <id>=<text>. Purpose: Add a comment to job <id> with text of <text> with the staff flag.
-&CMD`JOB_STAFF_COMMENT MuReq=$+job/add *=*:@assert [orflags(%#,Wr)];@assert [u(FN`EXISTS,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;INSERT STAFF COMMENT
+&CMD`JOB_STAFF_COMMENT MuReq=$+job/add *=*:@assert [orflags(%#,Wr)];@assert [u(FN`EXISTS,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;@pemit %#=[u(FN`INSERT_COMMENT,%0,%1,1)]
 
 @@ Command: +request <title>[/<category>[/<tags>]]=<text>. Purpose: create a new job with <title> and body of <text>. If <category> is specified it will be placed in that <category>.
 @@ If a space separated list of <tags> are specified then it will have those tags.
 &CMD`JOB_REQUEST MuReq=$+request *=*:
 
-@@ Command: +job/readers <id>=<players>. Purpose: Add <players> to the readers of job <id>. <players> is a space separated list of DBREFs.
+@@ Command: +job/readers <id>[/<comment ID>]=<players>. Purpose: Add <players> to the readers of job <id>. if <comment ID> is specified it is applied to that comment ID in the job instead.
+@@ <players> is a space separated list of DBREFs.
 &CMD`JOB_READERS MuReq=$+job/readers *=*:@assert [u(FN`EXISTS,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;@assert [u(FN`CAN_CONTROL,%#,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bYou don't control that job.;
 
 @@ Command: +job/commenters <id>=<players>. Purpose: Add <players> to the commenters of job <id>. <players> is a space separated list of DBREFs.
