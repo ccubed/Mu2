@@ -34,42 +34,74 @@
 @               FLAGS
 @               READERS
 @
-@   Flags: 0 - none, 1 - global, 2 - held, 3 - closed, 4 - archived, 5 - staff
+@   Flags: 0 - none, 1 - global, 2 - held, 3 - closed, 4 - archived, 5 - staff, 6 - Staff Locked
 
 @create MuReq
 
-## Command: +jobs. Purpose: Display list of jobs.
+@@ Command: +jobs. Purpose: Display list of jobs.
 &CMD`JOBS MuReq=$+jobs:@switch [orflags(%#,Wr)]=1,{@pemit %#=[u(FN`JOBS_LIST_STAFF,%#)]},{@pemit %#=[u(FN`JOBS_LIST_PLAYER,%#)]}
 
-## Command: +jobs <category>. Purpose: Display list of jobs in <category>.
+@@ Command: +jobs <category>. Purpose: Display list of jobs in <category>.
 &CMD`JOBS_CATEGORY MuReq=$+jobs *:@switch [orflags(%#,Wr)]=1,{@pemit %#=[u(FN`JOBS_LIST_STAFF,%#,%0)]},{@pemit %#=[u(FN`JOBS_LIST_PLAYER,%#,%0)]}
 
-## Command: +job <id>. Purpose: Display job <id>.
+@@ Command: +job <id>. Purpose: Display job <id>.
 &CMD`JOB MuReq=$+job *:@assert [u(FN`EXISTS,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;@assert [u(FN`CAN_VIEW,%#,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bNo permission to view job.;@pemit %#=[u(FN`DISPLAY_JOB,%0)]
 
-## Command: +job/comment <id>=<text>. Purpose: Add comment to job <id> with text of <text>
+@@ Command: +job/comment <id>=<text>. Purpose: Add comment to job <id> with text of <text>
 &CMD`JOB_COMMENT MuReq=$+job/comment *=*:@assert [u(FN`EXISTS,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;@assert [u(FN`CAN_WRITE,%#,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bNo permission to write to job.;INSERT COMMENT
 
-## Command: +job/add <id>=<text>. Purpose: Add a comment to job <id> with text of <text> with the staff flag.
+@@ Command: +job/add <id>=<text>. Purpose: Add a comment to job <id> with text of <text> with the staff flag.
 &CMD`JOB_STAFF_COMMENT MuReq=$+job/add *=*:@assert [orflags(%#,Wr)];@assert [u(FN`EXISTS,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;INSERT STAFF COMMENT
 
-## Command: +request <title>[/<category>[/<tags>]]=<text>. Purpose: create a new job with <title> and body of <text>. If <category> is specified it will be placed in that <category>.
-## If a space separated list of <tags> are specified then it will have those tags.
+@@ Command: +request <title>[/<category>[/<tags>]]=<text>. Purpose: create a new job with <title> and body of <text>. If <category> is specified it will be placed in that <category>.
+@@ If a space separated list of <tags> are specified then it will have those tags.
 &CMD`JOB_REQUEST MuReq=$+request *=*:
 
-## Command: +job/readers <id>=<players>. Purpose: Add <players> to the readers of job <id>. <players> is a space separated list of DBREFs.
-&CMD`JOB_READERS MuReq=$+job/readers *=*:
+@@ Command: +job/readers <id>=<players>. Purpose: Add <players> to the readers of job <id>. <players> is a space separated list of DBREFs.
+&CMD`JOB_READERS MuReq=$+job/readers *=*:@assert [u(FN`EXISTS,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;@assert [u(FN`CAN_CONTROL,%#,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bYou don't control that job.;
 
-## Command: +job/commenters <id>=<players>. Purpose: Add <players> to the commenters of job <id>. <players> is a space separated list of DBREFs.
-&CMD`JOB_COMMENTERS MuReq=$+job/commenters *=*:
+@@ Command: +job/commenters <id>=<players>. Purpose: Add <players> to the commenters of job <id>. <players> is a space separated list of DBREFs.
+&CMD`JOB_COMMENTERS MuReq=$+job/commenters *=*:@assert [u(FN`EXISTS,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;@assert [u(FN`CAN_CONTROL,%#,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bYou don't control that job.;
 
-## Command: +job/create <title>[/<category>[/<tags>[/<flag>]]]=<text>. Purpose: Create job with <title> and body of <text>. 
-&CMD`JOB_ADD MuReq=$+job/create *=*:
+@@ Command: +job/create <title>[/<category>[/<tags>[/<flag>]]]=<text>. Purpose: Create job with <title> and body of <text>. 
+&CMD`JOB_ADD MuReq=$+job/create *=*:@assert [orflags(%#,Wr)];
 
-## Command: +job/tag <id>=<tags>. Purpose: Modify <tags> on job <id>. <tags> is a space separated list of tag names with an optional - if they are being removed.
-## Example: +job/tag 1=Bug -Feep HelpWanted would add the tag Bug and HelpWanted to job 1 while removing the Feep tag.
-&CMD`JOB_TAG MuReq=$+job/tag *=*:
+@@ Command: +job/tag <id>=<tags>. Purpose: Modify <tags> on job <id>. <tags> is a space separated list of tag names with an optional - if they are being removed.
+@@ Example: +job/tag 1=Bug -Feep HelpWanted would add the tag Bug and HelpWanted to job 1 while removing the Feep tag.
+&CMD`JOB_TAG MuReq=$+job/tag *=*:@assert [u(FN`EXISTS,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;@assert [u(FN`CAN_CONTROL,%#,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bYou don't control that job.;
     
-## Command: +job/category <id>=<Category>. Purpose: Set the <category> of job <id>. Jobs can have one category but many tags. Think of categories as buckets or branches of issues.
-## Example: Bugs, Code, Plots, Apps, Staff, Global, etc.
-&CMD`JOB_CATEGORY MuReq=$+job/category *=*:
+@@ Command: +job/category <id>=<Category>. Purpose: Set the <category> of job <id>. Jobs can have one category but many tags. Think of categories as buckets or branches of issues.
+@@ Example: Bugs, Code, Plots, Apps, Staff, Global, etc.
+&CMD`JOB_CATEGORY MuReq=$+job/category *=*:@assert [u(FN`EXISTS,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;@assert [u(FN`CAN_CONTROL,%#,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bYou don't control that job.;
+
+@@ Command: +job/lock <id>. Purpose: Lock job <id>. This means that only staff can edit the flags, category, tags, commenters and readers. Commenters and Readers can still read/comment.
+&CMD`JOB_LOCK MuReq=$+job/lock *:@assert [orflags(%#,Wr)];
+
+@   Function Lists:
+@       FN`EXISTS - Check for the ID in the DB
+@           Returns: 1 if it exists in the DB, 0 otherwise
+@
+@       FN`CAN_CONTROL - Check if the given dbref can control a job
+@           Purpose: If they can control the job, they can add commentors and readers and edit tags and categories.
+@           Passed: %0 - DBRef, %1 - Job ID
+@           Definition of CAN_CONTROL: (Admin AND (Flag=0 OR Flag=2)) OR Staff
+@           Returns: 1 if they do, 0 if not
+@
+@       FN`CAN_WRITE - Check if the given dbref can write to a job
+@           Purpose: if they can write to the job, they can comment on it
+@           Passed: %0 - DBRef, %1 - Job ID
+@           Definition of CAN_WRITE: ((Admin OR Commentor) AND Flag<2) OR Staff
+@           Returns: 1 if they can, 0 if not
+@
+@       FN`CAN_VIEW - Check if the given dbref can view a job
+@           Purpose: If they can view a job, they can read it
+@           Passed: %0 - DBRef, %1 - Job ID
+@           Definition of CAN_VIEW: ((Admin OR Commentor OR Reader) AND Flag<5) OR Staff
+
+&FN`EXISTS MuReq=
+
+&FN`CAN_CONTROL MuReq=
+
+&FN`CAN_WRITE MuReq=
+
+&FN`CAN_VIEW MuReq=
