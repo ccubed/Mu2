@@ -1,0 +1,76 @@
+@	Coded by: Gizmo AKA Ourea, Alzie, Oukranos
+@	Email: ccubed.techno@gmail.com
+@----------------------------------------------------------------------------
+@	Purpose: Mu2 Job System, Integrates with Database. Assumes MySQL based syntax
+@----------------------------------------------------------------------------
+@
+@   DATABASE:
+@       Tables:
+@           JOBS_LIST
+@           JOBS_COMMENTS
+@           JOBS_TAGS
+@       Makeup:
+@           JOBS_LIST:
+@               ID
+@               OPENED_BY
+@               OPENED_ON
+@               ASSIGNED
+@               TITLE
+@               BODY
+@               DUE
+@               CATEGORY
+@               FLAGS
+@               READERS
+@               COMMENTERS
+@ 
+@           JOBS_TAGS:
+@               JOB_ID
+@               TAG
+@
+@           JOBS_COMMENTS:
+@               ID
+@               JOB_ID
+@               POSTED_BY
+@               POSTED_ON
+@               FLAGS
+@               READERS
+@
+@   Flags: 0 - none, 1 - global, 2 - held, 3 - closed, 4 - archived, 5 - staff
+
+@create MuReq
+
+## Command: +jobs. Purpose: Display list of jobs.
+&CMD`JOBS MuReq=$+jobs:@switch [orflags(%#,Wr)]=1,{@pemit %#=[u(FN`JOBS_LIST_STAFF,%#)]},{@pemit %#=[u(FN`JOBS_LIST_PLAYER,%#)]}
+
+## Command: +jobs <category>. Purpose: Display list of jobs in <category>.
+&CMD`JOBS_CATEGORY MuReq=$+jobs *:@switch [orflags(%#,Wr)]=1,{@pemit %#=[u(FN`JOBS_LIST_STAFF,%#,%0)]},{@pemit %#=[u(FN`JOBS_LIST_PLAYER,%#,%0)]}
+
+## Command: +job <id>. Purpose: Display job <id>.
+&CMD`JOB MuReq=$+job *:@assert [u(FN`EXISTS,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;@assert [u(FN`CAN_VIEW,%#,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bNo permission to view job.;@pemit %#=[u(FN`DISPLAY_JOB,%0)]
+
+## Command: +job/comment <id>=<text>. Purpose: Add comment to job <id> with text of <text>
+&CMD`JOB_COMMENT MuReq=$+job/comment *=*:@assert [u(FN`EXISTS,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;@assert [u(FN`CAN_WRITE,%#,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bNo permission to write to job.;INSERT COMMENT
+
+## Command: +job/add <id>=<text>. Purpose: Add a comment to job <id> with text of <text> with the staff flag.
+&CMD`JOB_STAFF_COMMENT MuReq=$+job/add *=*:@assert [orflags(%#,Wr)];@assert [u(FN`EXISTS,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;INSERT STAFF COMMENT
+
+## Command: +request <title>[/<category>[/<tags>]]=<text>. Purpose: create a new job with <title> and body of <text>. If <category> is specified it will be placed in that <category>.
+## If a space separated list of <tags> are specified then it will have those tags.
+&CMD`JOB_REQUEST MuReq=$+request *=*:
+
+## Command: +job/readers <id>=<players>. Purpose: Add <players> to the readers of job <id>. <players> is a space separated list of DBREFs.
+&CMD`JOB_READERS MuReq=$+job/readers *=*:
+
+## Command: +job/commenters <id>=<players>. Purpose: Add <players> to the commenters of job <id>. <players> is a space separated list of DBREFs.
+&CMD`JOB_COMMENTERS MuReq=$+job/commenters *=*:
+
+## Command: +job/create <title>[/<category>[/<tags>[/<flag>]]]=<text>. Purpose: Create job with <title> and body of <text>. 
+&CMD`JOB_ADD MuReq=$+job/create *=*:
+
+## Command: +job/tag <id>=<tags>. Purpose: Modify <tags> on job <id>. <tags> is a space separated list of tag names with an optional - if they are being removed.
+## Example: +job/tag 1=Bug -Feep HelpWanted would add the tag Bug and HelpWanted to job 1 while removing the Feep tag.
+&CMD`JOB_TAG MuReq=$+job/tag *=*:
+    
+## Command: +job/category <id>=<Category>. Purpose: Set the <category> of job <id>. Jobs can have one category but many tags. Think of categories as buckets or branches of issues.
+## Example: Bugs, Code, Plots, Apps, Staff, Global, etc.
+&CMD`JOB_CATEGORY MuReq=$+job/category *=*:
