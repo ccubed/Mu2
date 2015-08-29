@@ -12,7 +12,6 @@
 @       Makeup:
 @           JOBS_LIST:
 @               ID
-@               OPENED_BY
 @               OPENED_ON
 @               ASSIGNED
 @               TITLE
