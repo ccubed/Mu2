@@ -290,7 +290,7 @@ free_sql_query(void *queryp __attribute__ ((__unused__)))
   }
 }
 
-static void *
+void *
 sql_query(const char *query_str __attribute__ ((__unused__)), int *affected_rows
           __attribute__ ((__unused__)))
 {

@@ -81,6 +81,8 @@ void do_who_admin(dbref player, char *name);
 void do_who_session(dbref player, char *name);
 /* sql.c */
 void sql_shutdown(void);
+void *sql_query(const char *query_str __attribute__ ((__unused__)), int *affected_rows
+          __attribute__ ((__unused__)));
 
 /* From command.c */
 void generic_command_failure(dbref executor, dbref enactor, char *string,
