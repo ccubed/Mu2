@@ -13,6 +13,7 @@
 @@           JOBS_LIST:
 @@               ID
 @@               OPENED_ON
+@@               OPENED_BY
 @@               ASSIGNED
 @@               TITLE
 @@               BODY
@@ -44,6 +45,9 @@
 
 @@ Command: +jobs <category>. Purpose: Display list of jobs in <category>.
 &CMD`JOBS_CATEGORY MuReq=$+jobs *:@switch [orflags(%#,Wr)]=1,{@pemit %#=[u(FN`JOBS_LIST_STAFF,%#,%0)]},{@pemit %#=[u(FN`JOBS_LIST_PLAYER,%#,%0)]}
+
+@@ Command: +jobs/tag <tag>. Purpose: Display list of jobs with <tag>.
+&CMD`JOBS_TAG MuReq=$+jobs/tag *:@switch [orflags(%#,Wr)]=1,{@pemit %#=[u(FN`JOBS_LIST_STAFF_TAG,%#,%0)]},{@pemit %#=[u(FN`JOBS_LIST_PLAYER_TAG,%#,%0)]}
 
 @@ Command: +job <id>. Purpose: Display job <id>.
 &CMD`JOB MuReq=$+job *:@assert [u(FN`EXISTS,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;@assert [u(FN`CAN_VIEW,%#,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bNo permission to view job.;@pemit %#=[u(FN`DISPLAY_JOB,%0)]
@@ -107,44 +111,91 @@
 @@       FN`JOBS_LIST_PLAYER_OVERVIEW - Player version of +jobs Overview
 @@           Purpose: list jobs, player version
 @@           Passed: nothing
+@@
+@@       FN`JOBS_LIST_STAFF - Staff version of listing jobs in category
+@@           Purpose: list jobs in category
+@@           Passed: %0 - Category
+@@
+@@       FN`JOBS_LIST_PLAYER - Player version of listing jobs in categry
+@@           Purpose: list jobs in category, player version
+@@           Passed: %0 - Category
+@@
+@@       FN`JOBS_LIST_STAFF_TAG - Staff version of listing jobs with tag
+@@           Purpose: list jobs in with a certain tag
+@@           Passed: %0 - tag
+@@
+@@       FN`JOBS_LIST_PLAYER_TAG - Player version of listing jobs with a tag
+@@           Purpose: list jobs in with a certain tag, player version
+@@           Passed: %0 - tag
 
-&FN`EXISTS MuReq=
+&FN`EXISTS MuReq=[sql(u(SQL`EXISTS,%0))]
 
-&FN`CAN_CONTROL MuReq=
+&FN`CAN_CONTROL MuReq=[cor(orflags(%0,Wr),sql(u(SQL`CHECK_CONTROL,trim(%0,#),%1)))]
 
-&FN`CAN_WRITE MuReq=
+&FN`CAN_WRITE MuReq=[cor(orflags(%0,Wr),sql(u(SQL`CAN_WRITE,trim(%0,#),%1)))]
 
-&FN`CAN_VIEW MuReq=
+&FN`CAN_VIEW MuReq=[cor(orflags(%0,Wr),sql(u(SQL`CAN_VIEW,trim(%0,#),%1)))]
 
-&FN`JOBS_LIST_STAFF_OVERVIEW Mureq=
+&FN`JOBS_LIST_STAFF_OVERVIEW MuReq=
 
-&FN`JOBS_LIST_PLAYER_OVERVIEW Mureq=
+&FN`JOBS_LIST_PLAYER_OVERVIEW MuReq=
+
+&FN`JOBS_LIST_STAFF MuReq=
+
+&FN`JOBS_LIST_PLAYER MuReq=
+
+&FN`JOBS_LIST_STAFF_TAG MuReq=
+
+&FN`JOBS_LIST_PLAYER_TAG MuReq=
 
 @@  SQL Statements List:
 @@    NOTE: If you're hacking this, MySQL is inane and fulltext searches require the columns to be exactly as you entered them when creating
 @@    the fulltext index. IE: Commentors,Readers will work. Commentors will work. Readers will work. Readers,Commentors will fail unless you Modify
 @@    the create table statement.
 @@
-@@    SQL`COUNT_DISTINCT_BY_CATEGORY_PLAYER
+@@    SQL`COUNT_BY_CATEGORY_PLAYER
 @@      Purpose: Return count of distinct jobs by category which player is on
 @@      Passed: %0 - trim(DBREF,#)
+@@      Return: A list with #,Category groups
 @@
 @@   SQL`COUNT_BY_TAG_PLAYER
 @@      Purpose: Return count of jobs by tag
 @@      Passed: %0 - trim(DBREF,#)
+@@      Return: A list with #,Tag groups
 @@
-@@    SQL`COUNT_BY_CATEGORY_STAFF
+@@    SQL`COUNT_BY_CATEGORY
 @@      Purpose: Return count of jobs by category
 @@      Passed: Nothing
+@@      Return: A list with #,Category Groups
 @@
 @@   SQL`COUNT_BY_TAG
 @@      Purpose: Return count of jobs by tag
 @@      Passed: Nothing
+@@      Return: A list with #,Tag groups
+@@
+@@   SQL`ID_EXISTS
+@@     Purpose: Check if ID exists
+@@     Passed: ID to Check
+@@     Returns: 0 for false, 1 for true
+@@
+@@   SQL`CHECK_CONTROL
+@@     Purpose: Check if player controls a job
+@@     Passed: %0 - dbref minus #, %1 - id
+@@     Returns: 0 for false, 1 for true
+@@     Definition of can control: ID exists and OPENED_BY is player AND Flag < 3
 
-&SQL`COUNT_DISTINCT_BY_CATEGORY_PLAYER MuReq=SELECT Count(*) FROM JOBS_LIST WHERE MATCH(COMMENTORS,READERS) AGAINST ('[sqlescape(%0)]') GROUP BY CATEGORY
+&SQL`COUNT_BY_CATEGORY_PLAYER MuReq=SELECT Count(*),CATEGORY FROM JOBS_LIST WHERE MATCH(COMMENTORS,READERS) AGAINST ('[sqlescape(%0)]') GROUP BY CATEGORY
 
-&SQL`COUNT_BY_CATEGORY_STAFF MuReq=SELECT Count(*) FROM JOBS_LIST GROUP BY CATEGORY
+&SQL`COUNT_BY_CATEGORY MuReq=SELECT Count(*) FROM JOBS_LIST GROUP BY CATEGORY
 
 &SQL`COUNT_BY_TAG_PLAYER MuReq=SELECT Count(*),TAG FROM JOBS_TAGS t LEFT JOIN (SELECT ID FROM JOBS_LIST WHERE MATCH(COMMENTORS,READERS) AGAINST ('[sqlescape(%0)]')) x ON t.JOB_ID = x.ID GROUP t.TAG
 
 &SQL`COUNT_BY_TAG MuReq=SELECT Count(*) FROM JOBS_TAGS GROUP BY TAG
+
+&SQL`ID_EXISTS MuReq=SELECT EXISTS(SELECT * FROM JOBS_LIST WHERE ID=[sqlescape(%0)])
+
+&SQL`CHECK_CONTROL MuReq=SELECT EXISTS(SELECT * FROM JOBS_LIST WHERE ID=[sqlescape(%1)] AND OPENED_BY=[sqlescape(%0)] AND FLAGS<3)
+
+&SQL`CAN_WRITE MuReq=SELECT EXISTS(SELECT * FROM JOBS_LIST WHERE MATCH(COMMENTORS) AGAINST ('[sqlescape(%0)]') AND ID=[sqlescape(%1)])
+
+&SQL`CAN_VIEW MuReq=SELECT EXISTS(SELECT * FROM JOBS_LIST WHERE MATCH(READERS) AGAINST ('[sqlescape(%0)]') AND ID=[sqlescape(%1)])
