@@ -43,11 +43,20 @@
 @@ Command: +jobs. Purpose: Display list of jobs.
 &CMD`JOBS MuReq=$+jobs:@switch [orflags(%#,Wr)]=1,{@pemit %#=[u(FN`JOBS_LIST_STAFF_OVERVIEW,%#)]},{@pemit %#=[u(FN`JOBS_LIST_PLAYER_OVERVIEW,%#)]}
 
-@@ Command: +jobs <category>. Purpose: Display list of jobs in <category>.
-&CMD`JOBS_CATEGORY MuReq=$+jobs *:@switch [orflags(%#,Wr)]=1,{@pemit %#=[u(FN`JOBS_LIST_STAFF,%#,%0)]},{@pemit %#=[u(FN`JOBS_LIST_PLAYER,%#,%0)]}
+@@ Command: +jobs/category <category>. Purpose: Display list of jobs in <category>.
+&CMD`JOBS_CATEGORY MuReq=$+jobs/category *:
 
 @@ Command: +jobs/tag <tag>. Purpose: Display list of jobs with <tag>.
-&CMD`JOBS_TAG MuReq=$+jobs/tag *:@switch [orflags(%#,Wr)]=1,{@pemit %#=[u(FN`JOBS_LIST_STAFF_TAG,%#,%0)]},{@pemit %#=[u(FN`JOBS_LIST_PLAYER_TAG,%#,%0)]}
+&CMD`JOBS_TAG MuReq=$+jobs/tag *:
+
+@@ Command: +jobs/from <name>. Purpose: Display jobs opened by <name>.
+&CMD`JOBS_FROM MuReq=$+jobs/from *:
+    
+@@ Command: +jobs/mine. Purpose: A player version of +jobs/from.
+&CMDS`JOBS_MINE MuReq=$+jobs/mine:
+
+@@ Command: +jobs/search <keyword>. Purpose: Perform fulltext search of job titles and contents for <keyword>.
+&CMD`JOBS_KEYWORD_SEARCH MuReq=$+jobs/search *:
 
 @@ Command: +job <id>. Purpose: Display job <id>.
 &CMD`JOB MuReq=$+job *:@assert [u(FN`EXISTS,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;@assert [u(FN`CAN_VIEW,%#,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bNo permission to view job.;@pemit %#=[u(FN`DISPLAY_JOB,%0)]
@@ -114,19 +123,12 @@
 @@
 @@       FN`JOBS_LIST_STAFF - Staff version of listing jobs in category
 @@           Purpose: list jobs in category
-@@           Passed: %0 - Category
+@@           Passed: %0 - List of Jobs
 @@
 @@       FN`JOBS_LIST_PLAYER - Player version of listing jobs in categry
 @@           Purpose: list jobs in category, player version
-@@           Passed: %0 - Category
+@@           Passed: %0 - List of Jobs
 @@
-@@       FN`JOBS_LIST_STAFF_TAG - Staff version of listing jobs with tag
-@@           Purpose: list jobs in with a certain tag
-@@           Passed: %0 - tag
-@@
-@@       FN`JOBS_LIST_PLAYER_TAG - Player version of listing jobs with a tag
-@@           Purpose: list jobs in with a certain tag, player version
-@@           Passed: %0 - tag
 
 &FN`EXISTS MuReq=[sql(u(SQL`EXISTS,%0))]
 
@@ -136,17 +138,13 @@
 
 &FN`CAN_VIEW MuReq=[cor(orflags(%0,Wr),sql(u(SQL`CAN_VIEW,trim(%0,#),%1)))]
 
-&FN`JOBS_LIST_STAFF_OVERVIEW MuReq=
+&FN`JOBS_LIST_STAFF_OVERVIEW MuReq=[setq(A,[sql(u(SQL`COUNT_BY_CATEGORY),:,~)])][setq(B,[sql(u(SQL`COUNT_BY_TAG),:,~)])][header(MuReq)]%R[center([ansi(hw,Categories)],78)]%R[iter(%qA,[ljust(extract(%i0,1,1,~),39)][rjust(extract(%i0,2,1,~),39)],:,%R)][center([ansi(hw,Tags)],78)]%R[iter(%qB,[ljust(extract(%i0,1,1,~),39)][rjust(extract(%i0,2,1,~),39)],:,%R)][footer()]
 
-&FN`JOBS_LIST_PLAYER_OVERVIEW MuReq=
+&FN`JOBS_LIST_PLAYER_OVERVIEW MuReq=[setq(A,[sql(u(SQL`COUNT_BY_CATEGORY_PLAYER,trim(%0,#)),:,~)])][setq(B,[sql(u(SQL`COUNT_BY_TAG_PLAYER,trim(%0,#)),:,~)])][header(MuReq)]%R[center([ansi(hw,Categories)],78)]%R[iter(%qA,[ljust(extract(%i0,1,1,~),39)][rjust(extract(%i0,2,1,~),39)],:,%R)][center([ansi(hw,Tags)],78)]%R[iter(%qB,[ljust(extract(%i0,1,1,~),39)][rjust(extract(%i0,2,1,~),39)],:,%R)][footer()]
 
 &FN`JOBS_LIST_STAFF MuReq=
 
 &FN`JOBS_LIST_PLAYER MuReq=
-
-&FN`JOBS_LIST_STAFF_TAG MuReq=
-
-&FN`JOBS_LIST_PLAYER_TAG MuReq=
 
 @@  SQL Statements List:
 @@    NOTE: If you're hacking this, MySQL is inane and fulltext searches require the columns to be exactly as you entered them when creating
@@ -186,7 +184,7 @@
 
 &SQL`COUNT_BY_CATEGORY_PLAYER MuReq=SELECT Count(*),CATEGORY FROM JOBS_LIST WHERE MATCH(COMMENTORS,READERS) AGAINST ('[sqlescape(%0)]') GROUP BY CATEGORY
 
-&SQL`COUNT_BY_CATEGORY MuReq=SELECT Count(*) FROM JOBS_LIST GROUP BY CATEGORY
+&SQL`COUNT_BY_CATEGORY MuReq=SELECT Count(*),CATEGORY FROM JOBS_LIST GROUP BY CATEGORY
 
 &SQL`COUNT_BY_TAG_PLAYER MuReq=SELECT Count(*),TAG FROM JOBS_TAGS t LEFT JOIN (SELECT ID FROM JOBS_LIST WHERE MATCH(COMMENTORS,READERS) AGAINST ('[sqlescape(%0)]')) x ON t.JOB_ID = x.ID GROUP t.TAG
 
@@ -199,3 +197,11 @@
 &SQL`CAN_WRITE MuReq=SELECT EXISTS(SELECT * FROM JOBS_LIST WHERE MATCH(COMMENTORS) AGAINST ('[sqlescape(%0)]') AND ID=[sqlescape(%1)])
 
 &SQL`CAN_VIEW MuReq=SELECT EXISTS(SELECT * FROM JOBS_LIST WHERE MATCH(READERS) AGAINST ('[sqlescape(%0)]') AND ID=[sqlescape(%1)])
+
+&SQL`SELECT_BY_CATEGORY MuReq=SELECT * FROM JOBS_LIST WHERE CATEGORY='[sqlescape(%0)]'
+
+&SQL`SELECT_BY_TAG MuReq=SELECT * FROM JOBS_LIST jl WHERE EXISTS (SELECT JOB_ID FROM JOBS_TAGS jt WHERE jt.TAG='[sqlescape(%0)]' AND jt.JOB_ID=j1.id)
+
+&SQL`SELECT_BY_OPENED_BY MuReq=
+
+&SQL`SELECT_BY_KEYWORD MuReq=
