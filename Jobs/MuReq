@@ -44,19 +44,19 @@
 &CMD`JOBS MuReq=$+jobs:@switch [orflags(%#,Wr)]=1,{@pemit %#=[u(FN`JOBS_LIST_STAFF_OVERVIEW,%#)]},{@pemit %#=[u(FN`JOBS_LIST_PLAYER_OVERVIEW,%#)]}
 
 @@ Command: +jobs/category <category>. Purpose: Display list of jobs in <category>.
-&CMD`JOBS_CATEGORY MuReq=$+jobs/category *:
+&CMD`JOBS_CATEGORY MuReq=$+jobs/category *:@switch [setq(A,[sql(u(SQL`SELECT_BY_CATEGORY,%0),:,~)])][orflags(%#,Wr)]=0,{@pemit %#=[u(FN`JOBS_LIST,[filterbool(FILTERS`JOB_ACCESS,%qA,:,:)])]},1,{@pemit %#=[u(FN`JOBS_LIST,%qA)]}
 
 @@ Command: +jobs/tag <tag>. Purpose: Display list of jobs with <tag>.
-&CMD`JOBS_TAG MuReq=$+jobs/tag *:
+&CMD`JOBS_TAG MuReq=$+jobs/tag *:@switch [setq(a,[sql(u(SQL`SELECT_BY_TAG,%0),:,~)])][orflags(%#,Wr)]=0,{@pemit %#=[u(FN`JOBS_LIST,[filterbool(FILTERS`JOB_ACCESS,%qA,:,:)])]},1,{@pemit %#=[u(FN`JOBS_LIST,%qA)]}
 
 @@ Command: +jobs/from <name>. Purpose: Display jobs opened by <name>.
-&CMD`JOBS_FROM MuReq=$+jobs/from *:
-    
+&CMD`JOBS_FROM MuReq=$+jobs/from *:@assert [pmatch(%0)]=@pemit %#=[ansi(hr,Jobs:)]%bWho?;@assert [orflags(%#,Wr)]={@pemit %#=[u(FN`JOBS_LIST,[sql(u(SQL`SELECT_BY_OPENED_BY,trim(pmatch(%0),#)),:,~)])]}
+
 @@ Command: +jobs/mine. Purpose: A player version of +jobs/from.
-&CMDS`JOBS_MINE MuReq=$+jobs/mine:
+&CMDS`JOBS_MINE MuReq=$+jobs/mine:@pemit %#=[u(FN`JOBS_LIST,[sql(u(SQL`SELECT_BY_OPENED_BY,trim(%#,#)),:,~)])]
 
 @@ Command: +jobs/search <keyword>. Purpose: Perform fulltext search of job titles and contents for <keyword>.
-&CMD`JOBS_KEYWORD_SEARCH MuReq=$+jobs/search *:
+&CMD`JOBS_KEYWORD_SEARCH MuReq=$+jobs/search *:@assert [orflags(%#,Wr)];@pemit %#=[u(FN`JOBS_LIST,[sql(u(SQL`SELECT_BY_KEYWORD,%0),:,~)])]
 
 @@ Command: +job <id>. Purpose: Display job <id>.
 &CMD`JOB MuReq=$+job *:@assert [u(FN`EXISTS,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;@assert [u(FN`CAN_VIEW,%#,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bNo permission to view job.;@pemit %#=[u(FN`DISPLAY_JOB,%0)]
@@ -121,14 +121,9 @@
 @@           Purpose: list jobs, player version
 @@           Passed: nothing
 @@
-@@       FN`JOBS_LIST_STAFF - Staff version of listing jobs in category
-@@           Purpose: list jobs in category
+@@       FN`JOBS_LIST - List some jobs
+@@           Purpose: list some jobs
 @@           Passed: %0 - List of Jobs
-@@
-@@       FN`JOBS_LIST_PLAYER - Player version of listing jobs in categry
-@@           Purpose: list jobs in category, player version
-@@           Passed: %0 - List of Jobs
-@@
 
 &FN`EXISTS MuReq=[sql(u(SQL`EXISTS,%0))]
 
@@ -142,9 +137,7 @@
 
 &FN`JOBS_LIST_PLAYER_OVERVIEW MuReq=[setq(A,[sql(u(SQL`COUNT_BY_CATEGORY_PLAYER,trim(%0,#)),:,~)])][setq(B,[sql(u(SQL`COUNT_BY_TAG_PLAYER,trim(%0,#)),:,~)])][header(MuReq)]%R[center([ansi(hw,Categories)],78)]%R[iter(%qA,[ljust(extract(%i0,1,1,~),39)][rjust(extract(%i0,2,1,~),39)],:,%R)][center([ansi(hw,Tags)],78)]%R[iter(%qB,[ljust(extract(%i0,1,1,~),39)][rjust(extract(%i0,2,1,~),39)],:,%R)][footer()]
 
-&FN`JOBS_LIST_STAFF MuReq=
-
-&FN`JOBS_LIST_PLAYER MuReq=
+&FN`JOBS_LIST MuReq=
 
 @@  SQL Statements List:
 @@    NOTE: If you're hacking this, MySQL is inane and fulltext searches require the columns to be exactly as you entered them when creating
@@ -205,3 +198,10 @@
 &SQL`SELECT_BY_OPENED_BY MuReq=SELECT * FROM JOBS_LIST WHERE OPENED_BY=[sqlescape(%0)]
 
 &SQL`SELECT_BY_KEYWORD MuReq=SELECT * FROM (SELECT ID FROM JOBS_LIST WHERE MATCH(TITLE,BODY) AGAINST ('[sqlescape(%0)]') UNION SELECT JOB_ID as ID FROM JOBS_COMMENTS WHERE MATCH(BODY) AGAINST ('[sqlescape(%0)]'))
+
+@@ FILTERS
+@@
+@@ FILTERS`JOB_ACCESS
+@@ Purpose: On players, filter the job list by if they exist as the opened_by or are in the commentors/readers.
+@@
+&FILTERS`JOB_ACCESS MuReq=[cor([match(extract(%0,1,1,~),*%#*)],[match(extract(%0,3,1,~),*%#*)],[match(extract(%0,10,1,~),*%#*)],[match(extract(%0,11,1,~),*%#*)])]
