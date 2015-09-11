@@ -50,7 +50,7 @@
 &CMD`JOBS_TAG MuReq=$+jobs/tag *:@switch [setq(a,[sql(u(SQL`SELECT_BY_TAG,%0),:,~)])][orflags(%#,Wr)]=0,{@pemit %#=[u(FN`JOBS_LIST,[filterbool(FILTERS`JOB_ACCESS,%qA,:,:)])]},1,{@pemit %#=[u(FN`JOBS_LIST,%qA)]}
 
 @@ Command: +jobs/from <name>. Purpose: Display jobs opened by <name>.
-&CMD`JOBS_FROM MuReq=$+jobs/from *:@assert [pmatch(%0)]=@pemit %#=[ansi(hr,Jobs:)]%bWho?;@assert [orflags(%#,Wr)]={@pemit %#=[u(FN`JOBS_LIST,[sql(u(SQL`SELECT_BY_OPENED_BY,trim(pmatch(%0),#)),:,~)])]}
+&CMD`JOBS_FROM MuReq=$+jobs/from *:@assert [pmatch(%0)]=@pemit %#=[ansi(hr,Jobs:)]%bNo match for that player.;@assert [orflags(%#,Wr)]={@pemit %#=[u(FN`JOBS_LIST,[sql(u(SQL`SELECT_BY_OPENED_BY,trim(pmatch(%0),#)),:,~)])]}
 
 @@ Command: +jobs/mine. Purpose: A player version of +jobs/from.
 &CMDS`JOBS_MINE MuReq=$+jobs/mine:@pemit %#=[u(FN`JOBS_LIST,[sql(u(SQL`SELECT_BY_OPENED_BY,trim(%#,#)),:,~)])]
@@ -67,9 +67,9 @@
 @@ Command: +job/add <id>=<text>. Purpose: Add a comment to job <id> with text of <text> with the staff flag.
 &CMD`JOB_STAFF_COMMENT MuReq=$+job/add *=*:@assert [orflags(%#,Wr)];@assert [u(FN`EXISTS,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;@pemit %#=[u(FN`INSERT_COMMENT,%0,%1,1)]
 
-@@ Command: +request <title>[/<category>[/<tags>]]=<text>. Purpose: create a new job with <title> and body of <text>. If <category> is specified it will be placed in that <category>.
+@@ Command: +request <title>[/<category>]=<text>. Purpose: create a new job with <title> and body of <text>. If <category> is specified it will be placed in that <category>.
 @@ If a space separated list of <tags> are specified then it will have those tags.
-&CMD`JOB_REQUEST MuReq=$+request *=*:
+&CMD`JOB_REQUEST MuReq=$+request *=*:@switch [words(%0,/)]=1,{[sql(u(SQL`CREATE_JOB,DATETIME,trim(%#,#),%0,%1))]},2,{[sql(u(SQL`CREATE_JOB_EX,DATETIME,trim(%#,#),before(%0,/),%1,after(%0,/),0))]}
 
 @@ Command: +job/readers <id>[/<comment ID>]=<players>. Purpose: Add <players> to the readers of job <id>. if <comment ID> is specified it is applied to that comment ID in the job instead.
 @@ <players> is a space separated list of DBREFs.
@@ -78,8 +78,8 @@
 @@ Command: +job/commenters <id>=<players>. Purpose: Add <players> to the commenters of job <id>. <players> is a space separated list of DBREFs.
 &CMD`JOB_COMMENTERS MuReq=$+job/commenters *=*:@assert [u(FN`EXISTS,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;@assert [u(FN`CAN_CONTROL,%#,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bYou don't control that job.;
 
-@@ Command: +job/create <title>[/<category>[/<tags>[/<flag>]]]=<text>. Purpose: Create job with <title> and body of <text>.
-&CMD`JOB_ADD MuReq=$+job/create *=*:@assert [orflags(%#,Wr)];
+@@ Command: +job/create <title>[/<category>[/<flag>]]=<text>. Purpose: Alias for +request. Staff version can specify a flag.
+&CMD`JOB_ADD MuReq=$+job/create *=*:@assert [orflags(%#,Wr)];@switch [words(%0,/)]=1,{[sql(u(SQL`CREATE_JOB,DATETIME,trim(%#,#),%0,%1))]},2,{[sql(u(SQL`CREATE_JOB_EX,DATETIME,trim(%#,#),before(%0,/),%1,after(%0,/),0))]},3,{[sql(u(SQL`CREATE_JOB_EX,DATETIME,trim(%#,#),extract(%0,1,1,/),%1,extract(%0,2,1,/),extract(%0,3,1,/)))]}
 
 @@ Command: +job/tag <id>=<tags>. Purpose: Modify <tags> on job <id>. <tags> is a space separated list of tag names with an optional - if they are being removed.
 @@ Example: +job/tag 1=Bug -Feep HelpWanted would add the tag Bug and HelpWanted to job 1 while removing the Feep tag.
@@ -90,7 +90,7 @@
 &CMD`JOB_CATEGORY MuReq=$+job/category *=*:@assert [u(FN`EXISTS,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;@assert [u(FN`CAN_CONTROL,%#,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bYou don't control that job.;
 
 @@ Command: +job/lock <id>. Purpose: Lock job <id>. This means that only staff can edit the flags, category, tags, commenters and readers. Commenters and Readers can still read/comment.
-&CMD`JOB_LOCK MuReq=$+job/lock *:@assert [orflags(%#,Wr)];
+&CMD`JOB_LOCK MuReq=$+job/lock *:@assert [orflags(%#,Wr)];@assert [u(FN`EXISTS,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;[sql(UPDATE JOBS_LIST SET FLAGS=6 WHERE ID=[sqlescape(%0)])];@pemit %#=[ansi(hw,JOBS:)]%bLocked job %0.
 
 @@   Functions List:
 @@       FN`EXISTS - Check for the ID in the DB
@@ -198,6 +198,12 @@
 &SQL`SELECT_BY_OPENED_BY MuReq=SELECT * FROM JOBS_LIST WHERE OPENED_BY=[sqlescape(%0)]
 
 &SQL`SELECT_BY_KEYWORD MuReq=SELECT * FROM (SELECT ID FROM JOBS_LIST WHERE MATCH(TITLE,BODY) AGAINST ('[sqlescape(%0)]') UNION SELECT JOB_ID as ID FROM JOBS_COMMENTS WHERE MATCH(BODY) AGAINST ('[sqlescape(%0)]'))
+
+&SQL`CREATE_JOB MuReq=INSERT INTO JOBS_LIST (OPENED_ON,OPENED_BY,TITLE,BODY) VALUES ([sqlescape(%0)],[sqlescape(%1)],'[sqlescape(%2)]','[sqlescape(%3)]')
+
+&SQL`CREATE_JOB_EX MuReq=INSERT INTO JOBS_LIST (OPENED_ON,OPENED_BY,TITLE,BODY,CATEGORY,FLAGS) VALUES ([sqlescape(%0)],[sqlescape(%1)],'[sqlescape(%2)]','[sqlescape(%3)]','[sqlescape(%4)]',[sqlescape(%5)])
+
+&SQL`CREATE_TAG MuReq=INSERT INTO JOBS_TAGS (JOB_ID,TAG) VALUES ([sqlescape(%0)],'[sqlescape(%1)]')
 
 @@ FILTERS
 @@
