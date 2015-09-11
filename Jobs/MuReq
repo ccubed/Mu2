@@ -53,7 +53,7 @@
 &CMD`JOBS_FROM MuReq=$+jobs/from *:@assert [pmatch(%0)]=@pemit %#=[ansi(hr,Jobs:)]%bNo match for that player.;@assert [orflags(%#,Wr)]={@pemit %#=[u(FN`JOBS_LIST,[sql(u(SQL`SELECT_BY_OPENED_BY,trim(pmatch(%0),#)),:,~)])]}
 
 @@ Command: +jobs/mine. Purpose: A player version of +jobs/from.
-&CMDS`JOBS_MINE MuReq=$+jobs/mine:@pemit %#=[u(FN`JOBS_LIST,[sql(u(SQL`SELECT_BY_OPENED_BY,trim(%#,#)),:,~)])]
+&CMD`JOBS_MINE MuReq=$+jobs/mine:@pemit %#=[u(FN`JOBS_LIST,[sql(u(SQL`SELECT_BY_OPENED_BY,trim(%#,#)),:,~)])]
 
 @@ Command: +jobs/search <keyword>. Purpose: Perform fulltext search of job titles and contents for <keyword>.
 &CMD`JOBS_KEYWORD_SEARCH MuReq=$+jobs/search *:@assert [orflags(%#,Wr)];@pemit %#=[u(FN`JOBS_LIST,[sql(u(SQL`SELECT_BY_KEYWORD,%0),:,~)])]
