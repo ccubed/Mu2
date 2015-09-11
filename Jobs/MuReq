@@ -69,7 +69,7 @@
 
 @@ Command: +request <title>[/<category>]=<text>. Purpose: create a new job with <title> and body of <text>. If <category> is specified it will be placed in that <category>.
 @@ If a space separated list of <tags> are specified then it will have those tags.
-&CMD`JOB_REQUEST MuReq=$+request *=*:@switch [words(%0,/)]=1,{[sql(u(SQL`CREATE_JOB,DATETIME,trim(%#,#),%0,%1))]},2,{[sql(u(SQL`CREATE_JOB_EX,DATETIME,trim(%#,#),before(%0,/),%1,after(%0,/),0))]}
+&CMD`JOB_REQUEST MuReq=$+request *=*:@switch [words(%0,/)]=1,{[sql(u(SQL`CREATE_JOB,[timefmt($Y-$m-$d $H:$M:$S)],trim(%#,#),%0,%1))]},2,{[sql(u(SQL`CREATE_JOB_EX,[timefmt($Y-$m-$d $H:$M:$S)],trim(%#,#),before(%0,/),%1,after(%0,/),0))]}
 
 @@ Command: +job/readers <id>[/<comment ID>]=<players>. Purpose: Add <players> to the readers of job <id>. if <comment ID> is specified it is applied to that comment ID in the job instead.
 @@ <players> is a space separated list of DBREFs.
@@ -79,7 +79,7 @@
 &CMD`JOB_COMMENTERS MuReq=$+job/commenters *=*:@assert [u(FN`EXISTS,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;@assert [u(FN`CAN_CONTROL,%#,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bYou don't control that job.;
 
 @@ Command: +job/create <title>[/<category>[/<flag>]]=<text>. Purpose: Alias for +request. Staff version can specify a flag.
-&CMD`JOB_ADD MuReq=$+job/create *=*:@assert [orflags(%#,Wr)];@switch [words(%0,/)]=1,{[sql(u(SQL`CREATE_JOB,DATETIME,trim(%#,#),%0,%1))]},2,{[sql(u(SQL`CREATE_JOB_EX,DATETIME,trim(%#,#),before(%0,/),%1,after(%0,/),0))]},3,{[sql(u(SQL`CREATE_JOB_EX,DATETIME,trim(%#,#),extract(%0,1,1,/),%1,extract(%0,2,1,/),extract(%0,3,1,/)))]}
+&CMD`JOB_ADD MuReq=$+job/create *=*:@assert [orflags(%#,Wr)];@switch [words(%0,/)]=1,{[sql(u(SQL`CREATE_JOB,[timefmt($Y-$m-$d $H:$M:$S)],trim(%#,#),%0,%1))]},2,{[sql(u(SQL`CREATE_JOB_EX,[timefmt($Y-$m-$d $H:$M:$S)],trim(%#,#),before(%0,/),%1,after(%0,/),0))]},3,{[sql(u(SQL`CREATE_JOB_EX,[timefmt($Y-$m-$d $H:$M:$S)],trim(%#,#),extract(%0,1,1,/),%1,extract(%0,2,1,/),extract(%0,3,1,/)))]}
 
 @@ Command: +job/tag <id>=<tags>. Purpose: Modify <tags> on job <id>. <tags> is a space separated list of tag names with an optional - if they are being removed.
 @@ Example: +job/tag 1=Bug -Feep HelpWanted would add the tag Bug and HelpWanted to job 1 while removing the Feep tag.
@@ -137,7 +137,11 @@
 
 &FN`JOBS_LIST_PLAYER_OVERVIEW MuReq=[setq(A,[sql(u(SQL`COUNT_BY_CATEGORY_PLAYER,trim(%0,#)),:,~)])][setq(B,[sql(u(SQL`COUNT_BY_TAG_PLAYER,trim(%0,#)),:,~)])][header(MuReq)]%R[center([ansi(hw,Categories)],78)]%R[iter(%qA,[ljust(extract(%i0,1,1,~),39)][rjust(extract(%i0,2,1,~),39)],:,%R)][center([ansi(hw,Tags)],78)]%R[iter(%qB,[ljust(extract(%i0,1,1,~),39)][rjust(extract(%i0,2,1,~),39)],:,%R)][footer()]
 
-&FN`JOBS_LIST MuReq=
+&FN`JOBS_LIST MuReq=[ljust(ID,5)][ljust(TITLE,20)][ljust(CATEGORY,20)][ljust(ASSIGNED,20)][ljust(FLAG,13)]%R%b[repeat(-,76)]%R[iter(%0,[ansi([u(FN`DECIDE_COLOR,extract(%i0,7,1,~))],[ljust(extract(%i0,1,1,~),5)][ljust(extract(%i0,5,1,~),20)][ljust(extract(%i0,8,1,~),20)][ljust(extract(%i0,4,1,~),20)][ljust(u(FN`OUTPUT_FLAG,extract(%i0,9,1,~)),13)])],:,%R)][footer()]
+
+&FN`DECIDE_COLOR MuReq=[switch(sub(secs(),convtime(%0)),>259200,hg,<259200,hy,hw)]
+
+&FN`OUTPUT_FLAG MuReq=[switch(%0,0,None,1,Global,2,Held,3,Closed,4,Archived,5,Staff,6,Staff Locked)]
 
 @@  SQL Statements List:
 @@    NOTE: If you're hacking this, MySQL is inane and fulltext searches require the columns to be exactly as you entered them when creating
