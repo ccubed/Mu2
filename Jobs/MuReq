@@ -50,22 +50,22 @@
 &CMD`JOBS_TAG MuReq=$+jobs/tag *:@switch [setq(a,[sql(u(SQL`SELECT_BY_TAG,%0),|,~)])][orflags(%#,Wr)]=0,{@pemit %#=[u(FN`JOBS_LIST,[filterbool(FILTERS`JOB_ACCESS,%qA,|,|)])]},1,{@pemit %#=[u(FN`JOBS_LIST,%qA)]}
 
 @@ Command: +jobs/from <name>. Purpose: Display jobs opened by <name>.
-&CMD`JOBS_FROM MuReq=$+jobs/from *:@assert [pmatch(%0)]=@pemit %#=[ansi(hr,Jobs:)]%bNo match for that player.;@assert [orflags(%#,Wr)]={@pemit %#=[u(FN`JOBS_LIST,[sql(u(SQL`SELECT_BY_OPENED_BY,trim(pmatch(%0),#)),|,~)])]}
+&CMD`JOBS_FROM MuReq=$+jobs/from *:@assert [pmatch(%0)]=@pemit %#=[ansi(hr,Jobs:)]%bNo match for that player.;@break [orflags(%#,Wr)]={@pemit %#=[u(FN`JOBS_LIST,[sql(u(SQL`SELECT_BY_OPENED_BY,trim(pmatch(%0),#)),|,~)],Jobs from [name(pmatch(%0))])]}
 
 @@ Command: +jobs/mine. Purpose: A player version of +jobs/from.
-&CMD`JOBS_MINE MuReq=$+jobs/mine:@pemit %#=[u(FN`JOBS_LIST,[sql(u(SQL`SELECT_BY_OPENED_BY,trim(%#,#)),|,~)])]
+&CMD`JOBS_MINE MuReq=$+jobs/mine:@pemit %#=[u(FN`JOBS_LIST,[sql(u(SQL`SELECT_BY_OPENED_BY,trim(%#,#)),|,~)],My Jobs)]
 
 @@ Command: +jobs/search <keyword>. Purpose: Perform fulltext search of job titles and contents for <keyword>.
 &CMD`JOBS_KEYWORD_SEARCH MuReq=$+jobs/search *:@assert [orflags(%#,Wr)];@pemit %#=[u(FN`JOBS_LIST,[sql(u(SQL`SELECT_BY_KEYWORD,%0),|,~)])]
 
 @@ Command: +job <id>. Purpose: Display job <id>.
-&CMD`JOB MuReq=$+job *:@assert [u(FN`EXISTS,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;@assert [u(FN`CAN_VIEW,%#,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bNo permission to view job.;@pemit %#=[u(FN`DISPLAY_JOB,%0)]
+&CMD`JOB MuReq=$+job *:@assert [u(FN`EXISTS,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;@assert [u(FN`CAN_VIEW,%#,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bNo permission to view job.;[setq(A,[sql(SELECT * FROM JOBS_LIST WHERE ID=[sqlescape(%0)],|,~)])][setq(B,[sql(SELECT * FROM JOBS_COMMENTS WHERE JOB_ID=[sqlescape(%0)],|,~)])];@pemit %#=[header(Job %0)]%R[center([ansi(hw,Opened On)]%b[extract(%qA,2,1,~)]%b[ansi(hw,By)]%b[setr(c,[name(#[extract(%qA,3,1,~)])])],78)]%R[center(%qC's%b[ansi(hw,request for)]%b[extract(%qA,5,1,~)],78)]%R%b[ansi(nc,repeat(-,76))]%R[ansi(hw,Opening Comments)]:%R[extract(%qA,6,1,~)];@dolist/delimit |=@pemit %#=%b[repeat(ansi(nc,-),76)]%R[ansi(hw,Posted On)]%b[extract(%i0,4,1,~)]%b[ansi(hw,By)]%b[name(#[extract(%i0,3,1,~)])][if(eq(extract(%i0,5,1,~),5),<Staff>)]:%R[extract(%i0,7,1,~)];@pemit %#=[footer()]
 
 @@ Command: +job/comment <id>=<text>. Purpose: Add comment to job <id> with text of <text>
-&CMD`JOB_COMMENT MuReq=$+job/comment *=*:@assert [u(FN`EXISTS,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;@assert [u(FN`CAN_WRITE,%#,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bNo permission to write to job.;@pemit %#=[u(FN`INSERT_COMMENT,%0,%1,0)]
+&CMD`JOB_COMMENT MuReq=$+job/comment *=*:@assert [u(FN`EXISTS,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;@assert [u(FN`CAN_WRITE,%#,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bNo permission to write to job.;@pemit %#=[u(FN`INSERT_COMMENT,%0,trim(%#,#),0,%1)]
 
 @@ Command: +job/add <id>=<text>. Purpose: Add a comment to job <id> with text of <text> with the staff flag.
-&CMD`JOB_STAFF_COMMENT MuReq=$+job/add *=*:@assert [orflags(%#,Wr)];@assert [u(FN`EXISTS,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;@pemit %#=[u(FN`INSERT_COMMENT,%0,%1,1)]
+&CMD`JOB_STAFF_COMMENT MuReq=$+job/add *=*:@assert [orflags(%#,Wr)];@assert [u(FN`EXISTS,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;@pemit %#=[u(FN`INSERT_COMMENT,%0,trim(%#,#),5,%1)]
 
 @@ Command: +request <title>[/<category>]=<text>. Purpose: create a new job with <title> and body of <text>. If <category> is specified it will be placed in that <category>.
 @@ If a space separated list of <tags> are specified then it will have those tags.
@@ -125,7 +125,7 @@
 @@           Purpose: list some jobs
 @@           Passed: %0 - List of Jobs
 
-&FN`EXISTS MuReq=[sql(u(SQL`EXISTS,%0))]
+&FN`EXISTS MuReq=[sql(u(SQL`ID_EXISTS,%0))]
 
 &FN`CAN_CONTROL MuReq=[cor(orflags(%0,Wr),sql(u(SQL`CHECK_CONTROL,trim(%0,#),%1)))]
 
@@ -133,15 +133,17 @@
 
 &FN`CAN_VIEW MuReq=[cor(orflags(%0,Wr),sql(u(SQL`CAN_VIEW,trim(%0,#),%1)))]
 
-&FN`JOBS_LIST_STAFF_OVERVIEW MuReq=[setq(A,[sql(u(SQL`COUNT_BY_CATEGORY),|,~)])][setq(B,[sql(u(SQL`COUNT_BY_TAG),|,~)])][header(MuReq)]%R[center([ansi(hw,Categories)],78)]%R[iter(%qA,[ljust([ansi(nc,extract(%i0,2,1,~))],39)][ljust(extract(%i0,1,1,~),39)],|,%R)]%R[center([ansi(hw,Tags)],78)]%R[iter(%qB,[ljust(extract(%i0,1,1,~),39)][rjust(extract(%i0,2,1,~),39)],|,%R)][footer()]
+&FN`JOBS_LIST_STAFF_OVERVIEW MuReq=[setq(A,[sql(u(SQL`COUNT_BY_CATEGORY),|,~)])][setq(B,[sql(u(SQL`COUNT_BY_TAG),|,~)])][header(MuReq)]%R[center([ansi(hw,Categories)],78)]%R[iter(%qA,[ljust([ansi(nc,extract(%i0,2,1,~))],39)][ljust(extract(%i0,1,1,~),39)],|,%R)]%R[center([ansi(hw,Tags)],78)]%R[iter(%qB,[ljust([ansi(nc,extract(%i0,2,1,~))],39)][ljust(extract(%i0,1,1,~),39)],|,%R)][footer()]
 
-&FN`JOBS_LIST_PLAYER_OVERVIEW MuReq=[setq(A,[sql(u(SQL`COUNT_BY_CATEGORY_PLAYER,%0),|,~)])][setq(B,[sql(u(SQL`COUNT_BY_TAG_PLAYER,%0),|,~)])][header(MuReq)]%R[center([ansi(hw,Categories)],78)]%R[iter(%qA,[ljust(extract(%i0,1,1,~),39)][rjust(extract(%i0,2,1,~),39)],|,%R)]%R[center([ansi(hw,Tags)],78)]%R[iter(%qB,[ljust(extract(%i0,1,1,~),39)][rjust(extract(%i0,2,1,~),39)],|,%R)][footer()]
+&FN`JOBS_LIST_PLAYER_OVERVIEW MuReq=[setq(A,[sql(u(SQL`COUNT_BY_CATEGORY_PLAYER,%0),|,~)])][setq(B,[sql(u(SQL`COUNT_BY_TAG_PLAYER,%0),|,~)])][header(MuReq)]%R[center([ansi(hw,Categories)],78)]%R[iter(%qA,[ljust([ansi(nc,extract(%i0,2,1,~))],39)][ljust(extract(%i0,1,1,~),39)],|,%R)]%R[center([ansi(hw,Tags)],78)]%R[iter(%qB,[ljust([ansi(nc,extract(%i0,2,1,~))],39)][ljust(extract(%i0,1,1,~),39)],|,%R)][footer()]
 
-&FN`JOBS_LIST MuReq=[ljust(ID,5)][ljust(TITLE,20)][ljust(CATEGORY,20)][ljust(ASSIGNED,20)][ljust(FLAG,13)]%R%b[repeat(-,76)]%R[iter(%0,[ansi([u(FN`DECIDE_COLOR,extract(%i0,7,1,~))],[ljust(extract(%i0,1,1,~),5)][ljust(extract(%i0,5,1,~),20)][ljust(extract(%i0,8,1,~),20)][ljust(extract(%i0,4,1,~),20)][ljust(u(FN`OUTPUT_FLAG,extract(%i0,9,1,~)),13)])],|,%R)][footer()]
+&FN`JOBS_LIST MuReq=[header(%1)][ljust(ID,5)][ljust(TITLE,20)][ljust(CATEGORY,20)][ljust(ASSIGNED,20)][ljust(FLAG,13)]%R%b[repeat(-,76)]%R[iter(%0,[ansi([u(FN`DECIDE_COLOR,extract(%i0,7,1,~))],[ljust(extract(%i0,1,1,~),5)][ljust(extract(%i0,5,1,~),20)][ljust(extract(%i0,8,1,~),20)][ljust(extract(%i0,4,1,~),20)][ljust(u(FN`OUTPUT_FLAG,extract(%i0,9,1,~)),13)])],|,%R)][footer()]
 
 &FN`DECIDE_COLOR MuReq=[switch(sub(secs(),convtime(%0)),>259200,hg,<259200,hy,hw)]
 
-&FN`OUTPUT_FLAG MuReq=[switch(%0,0,None,1,Global,2,Held,3,Closed,4,Archived,5,Staff,6,Staff Locked)]
+&FN`OUTPUT_FLAG MuReq=[switch(%0,0,None,1,Global,2,Held,3,Closed,4,Archived,5,Staff,6,Staff Locked,None)]
+
+&FN`INSERT_COMMENT MuReq=[sql(u(SQL`INSERT_COMMENT,%0,%1,[timefmt($Y-$m-$d $H:$M:$S)],%2,%3))][ansi(hw,JOBS:)]%bCommented on job %0.
 
 @@  SQL Statements List:
 @@    NOTE: If you're hacking this, MySQL is inane and fulltext searches require the columns to be exactly as you entered them when creating
@@ -214,6 +216,8 @@
 &SQL`UPDATE_COMMENTORS MuReq=UPDATE JOBS_LIST SET COMMENTORS = concat(COMMENTORS,' [sqlescape(%1)]') WHERE ID=%0
 
 &SQL`COMMENT_PART_OF_JOB MuReq=SELECT EXISTS(SELECT * FROM JOBS_COMMENTS WHERE JOB_ID=[sqlescape(%0)] AND ID=[sqlescape(%1)])
+
+&SQL`INSERT_COMMENT MuReq=INSERT INTO JOBS_COMMENTS (JOB_ID,POSTED_BY,POSTED_ON,FLAGS,BODY) VALUES ([sqlescape(%0)],[sqlescape(%1)],'[sqlescape(%2)]',[sqlescape(%3)],'[sqlescape(%4)]')
 
 @@ FILTERS
 @@
