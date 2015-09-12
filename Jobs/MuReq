@@ -83,11 +83,11 @@
 
 @@ Command: +job/tag <id>=<tags>. Purpose: Modify <tags> on job <id>. <tags> is a space separated list of tag names with an optional - if they are being removed.
 @@ Example: +job/tag 1=Bug -Feep HelpWanted would add the tag Bug and HelpWanted to job 1 while removing the Feep tag.
-&CMD`JOB_TAG MuReq=$+job/tag *=*:@assert [u(FN`EXISTS,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;@assert [u(FN`CAN_CONTROL,%#,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bYou don't control that job.;
+&CMD`JOB_TAG MuReq=$+job/tag *=*:@assert [u(FN`EXISTS,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;@assert [u(FN`CAN_CONTROL,%#,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bYou don't control that job.;[sql(u(SQL`CREATE_TAG,%0,%1))];@pemit %#=[ansi(hw,JOBS:)]%bUpdated job %0 with a new tag: %1.
 
 @@ Command: +job/category <id>=<Category>. Purpose: Set the <category> of job <id>. Jobs can have one category but many tags. Think of categories as buckets or branches of issues.
 @@ Example: Bugs, Code, Plots, Apps, Staff, Global, etc.
-&CMD`JOB_CATEGORY MuReq=$+job/category *=*:@assert [u(FN`EXISTS,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;@assert [u(FN`CAN_CONTROL,%#,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bYou don't control that job.;
+&CMD`JOB_CATEGORY MuReq=$+job/category *=*:@assert [u(FN`EXISTS,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;@assert [u(FN`CAN_CONTROL,%#,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bYou don't control that job.;[sql(UPDATE JOBS_LIST SET CATEGORY='[sqlescape(%1)]' WHERE ID='[sqlescape(%0)]')];@pemit %#=[ansi(hw,JOBS:)]%bUpdated job %0 to have a category of %1.
 
 @@ Command: +job/lock <id>. Purpose: Lock job <id>. This means that only staff can edit the flags, category, tags, commenters and readers. Commenters and Readers can still read/comment.
 &CMD`JOB_LOCK MuReq=$+job/lock *:@assert [orflags(%#,Wr)];@assert [u(FN`EXISTS,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;[sql(UPDATE JOBS_LIST SET FLAGS=6 WHERE ID=[sqlescape(%0)])];@pemit %#=[ansi(hw,JOBS:)]%bLocked job %0.
@@ -187,7 +187,7 @@
 
 &SQL`COUNT_BY_TAG_PLAYER MuReq=SELECT Count(*),TAG FROM JOBS_TAGS t LEFT JOIN (SELECT ID FROM JOBS_LIST WHERE COMMENTORS like '\%[sqlescape(%0)]\%' OR READERS like '\%[sqlescape(%0)]\%') x ON t.JOB_ID = x.ID GROUP BY t.TAG
 
-&SQL`COUNT_BY_TAG MuReq=SELECT Count(*) FROM JOBS_TAGS GROUP BY TAG
+&SQL`COUNT_BY_TAG MuReq=SELECT Count(*),TAG FROM JOBS_TAGS GROUP BY TAG
 
 &SQL`ID_EXISTS MuReq=SELECT EXISTS(SELECT * FROM JOBS_LIST WHERE ID=[sqlescape(%0)])
 
