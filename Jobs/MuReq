@@ -59,7 +59,7 @@
 &CMD`JOBS_KEYWORD_SEARCH MuReq=$+jobs/search *:@assert [orflags(%#,Wr)];@pemit %#=[u(FN`JOBS_LIST,[sql(u(SQL`SELECT_BY_KEYWORD,%0),|,~)])]
 
 @@ Command: +job <id>. Purpose: Display job <id>.
-&CMD`JOB MuReq=$+job *:@assert [u(FN`EXISTS,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;@assert [u(FN`CAN_VIEW,%#,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bNo permission to view job.;[setq(A,[sql(SELECT * FROM JOBS_LIST WHERE ID=[sqlescape(%0)],|,~)])][setq(B,[sql(SELECT * FROM JOBS_COMMENTS WHERE JOB_ID=[sqlescape(%0)],|,~)])];@pemit %#=[header(Job %0)]%R[center([ansi(hw,Opened On)]%b[extract(%qA,2,1,~)]%b[ansi(hw,By)]%b[setr(c,[name(#[extract(%qA,3,1,~)])])],78)]%R[center(%qC's%b[ansi(hw,request for)]%b[extract(%qA,5,1,~)],78)]%R%b[ansi(nc,repeat(-,76))]%R[ansi(hw,Opening Comments)]:%R[extract(%qA,6,1,~)];@dolist/delimit |=@pemit %#=%b[repeat(ansi(nc,-),76)]%R[ansi(hw,Posted On)]%b[extract(%i0,4,1,~)]%b[ansi(hw,By)]%b[name(#[extract(%i0,3,1,~)])][if(eq(extract(%i0,5,1,~),5),<Staff>)]:%R[extract(%i0,7,1,~)];@pemit %#=[footer()]
+&CMD`JOB MuReq=$+job *:@assert [u(FN`EXISTS,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;@assert [u(FN`CAN_VIEW,%#,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bNo permission to view job.;[setq(A,[sql(SELECT * FROM JOBS_LIST WHERE ID=[sqlescape(%0)],|,~)])][setq(B,[sql(SELECT * FROM JOBS_COMMENTS WHERE JOB_ID=[sqlescape(%0)],|,~)])];@pemit %#=[header(Job %0)]%R[center([ansi(hw,Opened On)]%b[extract(%qA,2,1,~)]%b[ansi(hw,By)]%b[setr(c,[name(#[extract(%qA,3,1,~)])])],78)]%R[center(%qC's%b[ansi(hw,request for)]%b[extract(%qA,5,1,~)],78)]%R%b[ansi(nc,repeat(-,76))]%R[ansi(hw,Opening Comments)]:%R[extract(%qA,6,1,~)];@dolist/inline/delimit | [if(orflags(%#,Wr),%qB,[filterbool(FILTERS`CAN_VIEW_COMMENTS,%qB,|,|)])]=@pemit %#=%b[repeat(ansi(nc,-),76)]%R\[[extract(%i0,1,1,~)][if(eq(extract(%i0,5,1,~),5),-[ansi(nr,Staff)])]\]%b[ansi(hw,Posted On)]%b[extract(%i0,4,1,~)]%b[ansi(hw,By)]%b[name(#[extract(%i0,3,1,~)])]:%R[extract(%i0,7,1,~)];@pemit %#=[footer()]
 
 @@ Command: +job/comment <id>=<text>. Purpose: Add comment to job <id> with text of <text>
 &CMD`JOB_COMMENT MuReq=$+job/comment *=*:@assert [u(FN`EXISTS,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;@assert [u(FN`CAN_WRITE,%#,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bNo permission to write to job.;@pemit %#=[u(FN`INSERT_COMMENT,%0,trim(%#,#),0,%1)]
@@ -73,7 +73,7 @@
 
 @@ Command: +job/readers <id>[/<comment ID>]=<players>. Purpose: Add <players> to the readers of job <id>. if <comment ID> is specified it is applied to that comment ID in the job instead.
 @@ <players> is a space separated list of DBREFs.
-&CMD`JOB_READERS MuReq=$+job/readers *=*:@assert [u(FN`EXISTS,[before(%0,/)])]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;@assert [u(FN`CAN_CONTROL,%#,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bYou don't control that job.;@assert [pmatch(%1)]=@pemit %#=[ansi(hw,JOBS:)]%bWho?;@switch [words(%0,/)]=1,{[sql(u(SQL`UPDATE_READERS,%0,pmatch(%1)))];@pemit %#=[ansi(hw,JOBS:)]%bUpdated Readers on Job %0.},{@assert [sql(u(SQL`COMMENT_PART_OF_JOB,[before(%0,/)],[after(%0,/)]))]=@pemit %#=[ansi(hw,Jobs:)]%bThat comment isn't in that job.;[sql(u(SQL`UPDATE_READERS,%0,pmatch(%1)))];@pemit %#=[ansi(hw,JOBS:)]%bUpdated Readers on Comment [after(%0,/)] in Job [before(%0,/)].}
+&CMD`JOB_READERS MuReq=$+job/readers *=*:@assert [u(FN`EXISTS,[before(%0,/)])]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;@assert [u(FN`CAN_CONTROL,%#,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bYou don't control that job.;@assert [pmatch(%1)]=@pemit %#=[ansi(hw,JOBS:)]%bWho?;@switch [words(%0,/)]=1,{[sql(u(SQL`UPDATE_READERS,%0,pmatch(%1)))];@pemit %#=[ansi(hw,JOBS:)]%bUpdated Readers on Job %0.},{@assert [sql(u(SQL`COMMENT_PART_OF_JOB,[before(%0,/)],[after(%0,/)]))]=@pemit %#=[ansi(hw,Jobs:)]%bThat comment isn't in that job.;[sql(u(SQL`UPDATE_COMMENT_READERS,[after(%0,/)],pmatch(%1)))];@pemit %#=[ansi(hw,JOBS:)]%bUpdated Readers on Comment [after(%0,/)] in Job [before(%0,/)].}
 
 @@ Command: +job/commenters <id>=<players>. Purpose: Add <players> to the commenters of job <id>. <players> is a space separated list of DBREFs.
 &CMD`JOB_COMMENTERS MuReq=$+job/commenters *=*:@assert [u(FN`EXISTS,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;@assert [u(FN`CAN_CONTROL,%#,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bYou don't control that job.;@assert [pmatch(%1)]=@pemit %#=[ansi(hw,JOBS:)]%bWho?;[sql(u(SQL`UPDATE_COMMENTORS,%0,pmatch(%1)))];@pemit %#=[ansi(hw,JOBS:)]%bUpdated Readers on Job %0.
@@ -205,9 +205,9 @@
 
 &SQL`SELECT_BY_KEYWORD MuReq=SELECT * FROM (SELECT ID FROM JOBS_LIST WHERE MATCH(TITLE,BODY) AGAINST ('[sqlescape(%0)]') UNION SELECT JOB_ID as ID FROM JOBS_COMMENTS WHERE MATCH(BODY) AGAINST ('[sqlescape(%0)]'))
 
-&SQL`CREATE_JOB MuReq=INSERT INTO JOBS_LIST (OPENED_ON,OPENED_BY,TITLE,BODY) VALUES ('[sqlescape(%0)]',[sqlescape(%1)],'[sqlescape(%2)]','[sqlescape(%3)]')
+&SQL`CREATE_JOB MuReq=INSERT INTO JOBS_LIST (OPENED_ON,OPENED_BY,TITLE,BODY,READERS,COMMENTORS) VALUES ('[sqlescape(%0)]',[sqlescape(%1)],'[sqlescape(%2)]','[sqlescape(%3)]','','')
 
-&SQL`CREATE_JOB_EX MuReq=INSERT INTO JOBS_LIST (OPENED_ON,OPENED_BY,TITLE,BODY,CATEGORY,FLAGS) VALUES ('[sqlescape(%0)]',[sqlescape(%1)],'[sqlescape(%2)]','[sqlescape(%3)]','[sqlescape(%4)]',[sqlescape(%5)])
+&SQL`CREATE_JOB_EX MuReq=INSERT INTO JOBS_LIST (OPENED_ON,OPENED_BY,TITLE,BODY,CATEGORY,FLAGS,READERS,COMMENTORS) VALUES ('[sqlescape(%0)]',[sqlescape(%1)],'[sqlescape(%2)]','[sqlescape(%3)]','[sqlescape(%4)]',[sqlescape(%5)],'','')
 
 &SQL`CREATE_TAG MuReq=INSERT INTO JOBS_TAGS (JOB_ID,TAG) VALUES ([sqlescape(%0)],'[sqlescape(%1)]')
 
@@ -217,7 +217,9 @@
 
 &SQL`COMMENT_PART_OF_JOB MuReq=SELECT EXISTS(SELECT * FROM JOBS_COMMENTS WHERE JOB_ID=[sqlescape(%0)] AND ID=[sqlescape(%1)])
 
-&SQL`INSERT_COMMENT MuReq=INSERT INTO JOBS_COMMENTS (JOB_ID,POSTED_BY,POSTED_ON,FLAGS,BODY) VALUES ([sqlescape(%0)],[sqlescape(%1)],'[sqlescape(%2)]',[sqlescape(%3)],'[sqlescape(%4)]')
+&SQL`UPDATE_COMMENT_READERS MuReq=UPDATE JOBS_COMMENTS SET READERS = concat(READERS,' [sqlescape(%1)]') WHERE ID=%0
+
+&SQL`INSERT_COMMENT MuReq=INSERT INTO JOBS_COMMENTS (JOB_ID,POSTED_BY,POSTED_ON,FLAGS,BODY,READERS) VALUES ([sqlescape(%0)],[sqlescape(%1)],'[sqlescape(%2)]',[sqlescape(%3)],'[sqlescape(%4)]','')
 
 @@ FILTERS
 @@
@@ -225,3 +227,5 @@
 @@ Purpose: On players, filter the job list by if they exist as the opened_by or are in the commentors/readers.
 @@
 &FILTERS`JOB_ACCESS MuReq=[cor([match(extract(%0,1,1,~),*%#*)],[match(extract(%0,3,1,~),*%#*)],[match(extract(%0,10,1,~),*%#*)],[match(extract(%0,11,1,~),*%#*)])]
+
+&FILTERS`CAN_VIEW_COMMENTS MuReq=[cand(not(eq(extract(%0,5,1,~),5)),cor(not(t(extract(%0,6,1,~))),match(extract(%0,6,1,~),*%#*)))]
