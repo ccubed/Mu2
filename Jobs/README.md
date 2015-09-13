@@ -51,7 +51,7 @@ And we've added another level to the structure of permissions. I wish I could sa
 * +jobs/search <keyword> - List of jobs with keyword in title or comments
 
 #### Commands to Create Jobs
-``+request <title>[/<category>]=<opening comments> - Player command to open a job. Creates a job with <title> that has <opening comments> as body. If <category> is specified it has that category. Otherwise it defaults to None.``
+* ``+request <title>[/<category>]=<opening comments> - Player command to open a job. Creates a job with <title> that has <opening comments> as body. If <category> is specified it has that category. Otherwise it defaults to None.``
 
 #### Commands to Manipulate Jobs
 * +job <id> - View Job <id>
@@ -62,7 +62,7 @@ And we've added another level to the structure of permissions. I wish I could sa
 #### Commands for Staff
 * +job/add <id>=<text> - Add a staff comment to job <id> with <text>. This comment is flagged staff and only ever visible to other staff.
 * +job/lock <id> - Lock a job so only staff can modify it
-``* +job/create <title>[/<category>[/<flag>]]=<text> - Create a job with <title> and body of <text>. Staff can also specify a <category> and <flag> (from 0-6).``
+* ``+job/create <title>[/<category>[/<flag>]]=<text> - Create a job with <title> and body of <text>. Staff can also specify a <category> and <flag> (from 0-6).``
 
 ## Flags
 * 0 - None
