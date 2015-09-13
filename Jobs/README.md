@@ -49,31 +49,3 @@ And we've added another level to the structure of permissions. I wish I could sa
 * +jobs/from <name> - List of jobs Opened By <name>
 * +jobs/mine - List of jobs Opened By You
 * +jobs/search <keyword> - List of jobs with keyword in title or comments
-
-#### Commands to Create Jobs
-* +request <title>[/<category>]=<opening comments> - Player command to open a job. Creates a job with <title> that has <opening comments> as body. If <category> is specified it has that category. Otherwise it defaults to None.
-
-#### Commands to Manipulate Jobs
-* +job <id> - View Job <id>
-* +job/comment <id>=<comment> - Add <comment> to <id>.
-* +job/readers <id>=<player> - Add <player> to the readers of <id>.
-* +job/commenters <id>=<player> - Add <player> to the commenters of <id>.
-
-#### Commnads for Staff
-* +job/add <id>=<text> - Add a staff comment to job <id> with <text>. This comment is flagged staff and only ever visible to other staff.
-* +job/create <title>[/<category>[/<flag>]]=<text> - Create a job with <title> and body of <text>. Staff can also specify a <category> and <flag> (from 0-6).
-* +job/lock <id> - Lock a job so only staff can modify it
-
-
-## Flags
-* 0 - None
-* 1 - Global (Anyone can comment on and Read the job)
-* 2 - Held
-* 3 - Closed
-* 4 - Archived
-* 5 - Staff
-* 6 - Staff Locked
-
-
-## Dev Status
-This is far from done, but it's working. I will keep adding features.
