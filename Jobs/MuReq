@@ -70,18 +70,16 @@
 @@ Command: +request <title>[/<category>]=<text>. Purpose: create a new job with <title> and body of <text>. If <category> is specified it will be placed in that <category>.
 &CMD`JOB_REQUEST MuReq=$+request *=*:@switch [words(%0,/)]=1,{[sql(u(SQL`CREATE_JOB,[timefmt($Y-$m-$d $H:$M:$S)],trim(%#,#),%0,%1))]},2,{[sql(u(SQL`CREATE_JOB_EX,[timefmt($Y-$m-$d $H:$M:$S)],trim(%#,#),before(%0,/),%1,after(%0,/),0))]}
 
-@@ Command: +job/readers <id>[/<comment ID>]=<players>. Purpose: Add <players> to the readers of job <id>. if <comment ID> is specified it is applied to that comment ID in the job instead.
-@@ <players> is a space separated list of DBREFs.
+@@ Command: +job/readers <id>[/<comment ID>]=<player>. Purpose: Add <player> to the readers of job <id>. if <comment ID> is specified it is applied to that comment ID in the job instead.
 &CMD`JOB_READERS MuReq=$+job/readers *=*:@assert [u(FN`EXISTS,[before(%0,/)])]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;@assert [u(FN`CAN_CONTROL,%#,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bYou don't control that job.;@assert [pmatch(%1)]=@pemit %#=[ansi(hw,JOBS:)]%bWho?;@switch [words(%0,/)]=1,{[sql(u(SQL`UPDATE_READERS,%0,pmatch(%1)))];@pemit %#=[ansi(hw,JOBS:)]%bUpdated Readers on Job %0.},{@assert [sql(u(SQL`COMMENT_PART_OF_JOB,[before(%0,/)],[after(%0,/)]))]=@pemit %#=[ansi(hw,Jobs:)]%bThat comment isn't in that job.;[sql(u(SQL`UPDATE_COMMENT_READERS,[after(%0,/)],pmatch(%1)))];@pemit %#=[ansi(hw,JOBS:)]%bUpdated Readers on Comment [after(%0,/)] in Job [before(%0,/)].}
 
-@@ Command: +job/commenters <id>=<players>. Purpose: Add <players> to the commenters of job <id>. <players> is a space separated list of DBREFs.
+@@ Command: +job/commenters <id>=<player>. Purpose: Add <players> to the commenters of job <id>.
 &CMD`JOB_COMMENTERS MuReq=$+job/commenters *=*:@assert [u(FN`EXISTS,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;@assert [u(FN`CAN_CONTROL,%#,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bYou don't control that job.;@assert [pmatch(%1)]=@pemit %#=[ansi(hw,JOBS:)]%bWho?;[sql(u(SQL`UPDATE_COMMENTORS,%0,pmatch(%1)))];@pemit %#=[ansi(hw,JOBS:)]%bUpdated Readers on Job %0.
 
 @@ Command: +job/create <title>[/<category>[/<flag>]]=<text>. Purpose: Alias for +request. Staff version can specify a flag.
 &CMD`JOB_ADD MuReq=$+job/create *=*:@assert [orflags(%#,Wr)];@switch [words(%0,/)]=1,{[sql(u(SQL`CREATE_JOB,[timefmt($Y-$m-$d $H:$M:$S)],trim(%#,#),%0,%1))]},2,{[sql(u(SQL`CREATE_JOB_EX,[timefmt($Y-$m-$d $H:$M:$S)],trim(%#,#),before(%0,/),%1,after(%0,/),0))]},3,{[sql(u(SQL`CREATE_JOB_EX,[timefmt($Y-$m-$d $H:$M:$S)],trim(%#,#),extract(%0,1,1,/),%1,extract(%0,2,1,/),extract(%0,3,1,/)))]}
 
-@@ Command: +job/tag <id>=<tags>. Purpose: Modify <tags> on job <id>. <tags> is a space separated list of tag names with an optional - if they are being removed.
-@@ Example: +job/tag 1=Bug -Feep HelpWanted would add the tag Bug and HelpWanted to job 1 while removing the Feep tag.
+@@ Command: +job/tag <id>=<tag>. Purpose: Modify <tags> on job <id>.
 &CMD`JOB_TAG MuReq=$+job/tag *=*:@assert [u(FN`EXISTS,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bID %0 doesn't seem to exist.;@assert [u(FN`CAN_CONTROL,%#,%0)]=@pemit %#=[ansi(hw,JOBS:)]%bYou don't control that job.;[sql(u(SQL`CREATE_TAG,%0,%1))];@pemit %#=[ansi(hw,JOBS:)]%bUpdated job %0 with a new tag: %1.
 
 @@ Command: +job/category <id>=<Category>. Purpose: Set the <category> of job <id>. Jobs can have one category but many tags. Think of categories as buckets or branches of issues.
