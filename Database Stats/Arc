@@ -51,6 +51,9 @@
 @@ Returns: 1 - acceptable, 0 - not acceptable, #-1 - Error
 &FN`LEVEL_ACCEPTABLE Arc=[setq(A,0)][if(sql(u(SQL`EXISTS,%0)),[setq(b,sql(SELECT LEVELS FROM ARC_[sqlescape(%0)] WHERE Name='[sqlescape(%1)]'))][if(cor(eq(%qB,0),match(%qB,%2)),[setq(A,1)],[setq(A,0)])],[setq(A,#-1)])]%qA
 
+@@ Function: FN`STAT_EXISTS. Pass a category, thing. Returns 1 if thing exists in category, 0 otherwise.
+&FN`STAT_EXISTS Arc=[setq(A,0)][if(sql(u(SQL`EXISTS,%0)),[setq(A,[sql(u(SQL`STAT_EXISTS,%0,%1))])],[setq(A,0)])]%qA
+
 @@ Sql Section
 
 &SQL`CREATE_MAIN_TABLE Arc=CREATE TABLE `%va`.`ARC_[sqlescape(%0)]`(`ID` INT NOT NULL AUTO_INCREMENT COMMENT 'ID',`NAME` TEXT NOT NULL,`LEVELS` TEXT NULL,`PREREQS` TEXT NULL,PRIMARY KEY(`ID`),FULLTEXT (NAME)) ENGINE='INNODB'
@@ -62,3 +65,5 @@
 &SQL`INSERT_NEW_STAT Arc=INSERT INTO ARC_[sqlescape(%0)] (Name,Levels) VALUES ('[sqlescape(%1)]','[sqlescape(%2)]')
 
 &SQL`ADD_PLAYER_STAT Arc=INSERT INTO ARC_[sqlescape(%0)]_PLAYER (PID,ID,Level,Name,Notes) VALUES ([sqlescape(trim(%1,#))],[sqlescape(%2)],[sqlescape(%3)],'[sqlescape(%4)]',[if(%5,'[sqlescape(%5)]',NULL)])
+
+&SQL`STAT_EXISTS Arc=SELECT EXISTS(SELECT * FROM ARC_[sqlescape(%0)] WHERE Name='[sqlescape(%1)]')
