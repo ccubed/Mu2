@@ -20,7 +20,6 @@
 @@
 @@   SHEET_<category>_PLAYER
 @@      PID - Player DBREF minus #
-@@      ID - The ID corresponding to what they have
 @@      Level - Level they have
 @@      Name - Name of Thing (Not necessary, but saves time on sql)
 @@      Notes - Notes for Thing
@@ -40,7 +39,7 @@
 &CMD`LIST Arc=$+arc/list *:@assert [t([sql(u(SQL`EXISTS,%0))])]=@pemit %#=[ansi(hw,Arc:)]%bThat doesn't seem to exist.;[setq(A,[sql(SELECT NAME\,LEVELS FROM ARC_[sqlescape(%0)],:,~)])];@pemit %#=[header(%0)]%R[center([ansi(hw,I have the following %0)],78)]%R[ljust(ansi(nc,Name),39)][ljust(ansi(nc,Levels),39)];@dolist/inline/delimit : %qA=@pemit %#=[ljust(extract(%i0,1,1,~),39)][ljust(extract(%i0,2,1,~),39)];@pemit %#=[footer()]
 
 @@ Command: +arc/set <player>/<category>=<thing>:<level>[/<notes>]. Add <thing> from <category> to <player> at <level>. You can add an optional <notes>.
-&CMD`SET Arc=$+arc/set */*=*:@assert [orflags(%#,Wr)];@assert [pmatch(%0)]=@pemit %#=[ansi(hw,ARC:)]%bNo player match.;@assert [sql(u(SQL`EXISTS,%1))]=@pemit %#=[ansi(hw,ARC:)]%bThat category doesn't seem to exist.;@assert [t(setr(A,sql(SELECT ID FROM ARC_[sqlescape(%1)] WHERE Name='[sqlescape(before(%2,:))]')))]=@pemit %#=[ansi(hw,ARC:)]%bThat stat doesn't seem to exist in the category.;[sql(u(SQL`ADD_PLAYER_STAT,%1,[pmatch(%0)],%qA,[before(after(%2,:),/)],[before(%2,:)],[if(t(after(after(%2,:),/)),after(after(%2,:),/),0)]))];@pemit %#=[ansi(hw,ARC:)]%bAdded [before(%2,:)] to %0 at [before(after(%2,:),/)].
+&CMD`SET Arc=$+arc/set */*=*:@assert [orflags(%#,Wr)];@assert [pmatch(%0)]=@pemit %#=[ansi(hw,ARC:)]%bNo player match.;@assert [sql(u(SQL`EXISTS,%1))]=@pemit %#=[ansi(hw,ARC:)]%bThat category doesn't seem to exist.;@assert [t(setr(A,sql(SELECT * FROM ARC_[sqlescape(%1)] WHERE Name='[sqlescape(before(%2,:))]')))]=@pemit %#=[ansi(hw,ARC:)]%bThat stat doesn't seem to exist in the category.;[sql(u(SQL`ADD_PLAYER_STAT,%1,[pmatch(%0)],[before(after(%2,:),/)],[before(%2,:)],[if(t(after(after(%2,:),/)),after(after(%2,:),/),0)]))];@pemit %#=[ansi(hw,ARC:)]%bAdded [before(%2,:)] to %0 at [before(after(%2,:),/)].
 
 @@ Command: +arc/database <name>. In case you would prefer a command to set the database name.
 &CMD`DATABASE_NAME Arc=$+arc/database *:@assert [hasflag(%#,W)];[attrib_set(me/VA,%0)];@pemit %#=[ansi(hw,Arc:)]%bDatabase name set to %0. Please make sure this is correct.
@@ -51,14 +50,19 @@
 @@ Returns: 1 - acceptable, 0 - not acceptable, #-1 - Error
 &FN`LEVEL_ACCEPTABLE Arc=[setq(A,0)][if(sql(u(SQL`EXISTS,%0)),[setq(b,sql(SELECT LEVELS FROM ARC_[sqlescape(%0)] WHERE Name='[sqlescape(%1)]'))][if(cor(eq(%qB,0),match(%qB,%2)),[setq(A,1)],[setq(A,0)])],[setq(A,#-1)])]%qA
 
+@@ Function: FN`STAT_EXISTS. Pass a category, thing. Returns 1 if thing exists in category, 0 otherwise.
+&FN`STAT_EXISTS Arc=[setq(A,0)][if(sql(u(SQL`EXISTS,%0)),[setq(A,[sql(u(SQL`STAT_EXISTS,%0,%1))])],[setq(A,0)])]%qA
+
 @@ Sql Section
 
 &SQL`CREATE_MAIN_TABLE Arc=CREATE TABLE `%va`.`ARC_[sqlescape(%0)]`(`ID` INT NOT NULL AUTO_INCREMENT COMMENT 'ID',`NAME` TEXT NOT NULL,`LEVELS` TEXT NULL,`PREREQS` TEXT NULL,PRIMARY KEY(`ID`),FULLTEXT (NAME)) ENGINE='INNODB'
 
-&SQL`CREATE_PLAYER_TABLE Arc=CREATE TABLE `%va`.`ARC_[sqlescape(%0)]_PLAYER`(`PID` INT NOT NULL,`ID` INT NOT NULL,`LEVEL` INT NOT NULL,`NAME` TEXT NOT NULL,`NOTES` TEXT NULL,FULLTEXT (NAME),FULLTEXT (NOTES)) ENGINE='INNODB'
+&SQL`CREATE_PLAYER_TABLE Arc=CREATE TABLE `%va`.`ARC_[sqlescape(%0)]_PLAYER`(`PID` INT NOT NULL,`LEVEL` INT NOT NULL,`NAME` TEXT NOT NULL,`NOTES` TEXT NULL,FULLTEXT (NAME),FULLTEXT (NOTES)) ENGINE='INNODB'
 
 &SQL`EXISTS Arc=SHOW TABLES LIKE '\%[sqlescape(%0)]\%'
 
 &SQL`INSERT_NEW_STAT Arc=INSERT INTO ARC_[sqlescape(%0)] (Name,Levels) VALUES ('[sqlescape(%1)]','[sqlescape(%2)]')
 
-&SQL`ADD_PLAYER_STAT Arc=INSERT INTO ARC_[sqlescape(%0)]_PLAYER (PID,ID,Level,Name,Notes) VALUES ([sqlescape(trim(%1,#))],[sqlescape(%2)],[sqlescape(%3)],'[sqlescape(%4)]',[if(%5,'[sqlescape(%5)]',NULL)])
+&SQL`ADD_PLAYER_STAT Arc=INSERT INTO ARC_[sqlescape(%0)]_PLAYER (PID,Level,Name,Notes) VALUES ([sqlescape(trim(%1,#))],[sqlescape(%2)],[sqlescape(%3)],'[sqlescape(%4)]',[if(%5,'[sqlescape(%5)]',NULL)])
+
+&SQL`STAT_EXISTS Arc=SELECT EXISTS(SELECT * FROM ARC_[sqlescape(%0)] WHERE Name='[sqlescape(%1)]')
