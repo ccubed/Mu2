@@ -631,7 +631,7 @@ room_connects yes
 
 # What SQL server platform should we use? Options include:
 # mysql, postgresql, sqlite3, disabled (the default)
-sql_platform disabled
+sql_platform mysql
 
 # What's the SQL hostname? Use '127.0.0.1' for a TCP connection
 # to the local host on port 3306, '<hostip>:<port#>' for a TCP
@@ -641,13 +641,13 @@ sql_host 127.0.0.1
 
 # What's the SQL database? You have to set this to a database that
 # you create, or the filename of a sqlite3 database.
-sql_database mush
+sql_database Mu2
 
 # What username to access the database?
-sql_username mush
+sql_username root
 
 # What password for that user? Change this!
-sql_password mush
+#sql_password 
 
 ###
 ### Options affecting commands and functions
