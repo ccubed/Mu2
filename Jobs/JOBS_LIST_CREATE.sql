@@ -1,4 +1,4 @@
-CREATE TABLE `[INSERT YOUR DB HERE]`.`JOBS_LIST` (
+CREATE TABLE `Mu2`.`JOBS_LIST` (
   `ID` INT NOT NULL AUTO_INCREMENT COMMENT 'ID of the job. AKA Job number.',
   `OPENED_ON` DATETIME NOT NULL COMMENT 'Stores date job was opened',
   `OPENED_BY` INT(10) NOT NULL COMMENT 'Dbref of the person who opened the job minus the #',
