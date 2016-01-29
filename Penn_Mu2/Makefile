@@ -15,18 +15,18 @@ PATCHLEVEL=0
 # and (probably) remove -O
 #
 MAKE=/usr/bin/make
-CC=gcc -std=gnu99
+CC=gcc
 
-SQL_CFLAGS=-I/usr/include/mysql -DBIG_JOINS=1  -fno-strict-aliasing    -g -DNDEBUG -I/usr/include/postgresql -I/usr/include
-SQL_LDFLAGS=-L/usr/lib/x86_64-linux-gnu -lmysqlclient -lpthread -lz -lm -ldl -L/usr/lib -L/usr/lib -lsqlite3
+SQL_CFLAGS=  -I/usr/include
+SQL_LDFLAGS=  -L/usr/lib -lsqlite3
 
-CCFLAGS=-ggdb -g -O2 -W -Wall -pedantic -Wno-comment -Wno-char-subscripts -fstack-protector -Wa,--noexecstack -I.. -I../hdrs -include ../config.h -include ../confmagic.h -include ../options.h -funsigned-char    
-LDFLAGS= -Wl,-z,noexecstack   
-CLIBS=-lpcre -lz -lcrypt -lm  -lpcre -lssl -lcrypto   -lpq
+CCFLAGS=-ggdb -g -O2 -W -Wall -pedantic -Wno-comment -Wno-char-subscripts -fstack-protector -Wa,--noexecstack -I.. -I../hdrs -include ../config.h -include ../confmagic.h -include ../options.h -funsigned-char   
+LDFLAGS= -Wl,-z,noexecstack  
+CLIBS=-lpcre -lz -levent_openssl -levent_extra -levent_core -lcrypt -lm  -lpcre -lssl -lcrypto 
 INSTALL=/usr/bin/install -c
 INSTALLDIR=$installdir
-CP=/bin/cp
-CHMOD=/bin/chmod
+CP=/usr/bin/cp
+CHMOD=/usr/bin/chmod
 INSTALL_LINKS=ln -s ../src/netmud netmush; ln -s ../src/info_slave info_slave; ln -s ../src/ssl_slave ssl_slave
 
 # stupid SYS V shell

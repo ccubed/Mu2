@@ -4,7 +4,7 @@
 #         You shouldn't have to change anything in this file.                 #
 ###############################################################################
 
-OUTFILES=buildinf netmud info_slave 
+OUTFILES=buildinf netmud info_slave ssl_slave
 
 # Libs EXCEPT for SQL ones
 LIBS=$(CLIBS)
@@ -141,10 +141,10 @@ rgbtab.c: rgbtab.gperf
 	gperf -C --output-file rgbtab.c rgbtab.gperf
 
 etags: 
-	/usr/bin/etags *.c ../hdrs/*.h
+	 *.c ../hdrs/*.h
 
 ctags: 
-	/usr/bin/ctags *.c ../hdrs/*.h
+	 *.c ../hdrs/*.h
 
 depend: $(C_FILES) info_slave.c ssl_slave.c
 	makedepend -fMakefile.in -w10 -- $(CFLAGS) -- $(C_FILES) info_slave.c ssl_slave.c 2>/dev/null
@@ -154,7 +154,7 @@ depend: $(C_FILES) info_slave.c ssl_slave.c
 
 indent:
 	(set +e; for file in *.dst *.c  ../hdrs/*.h ; do echo $$file; \
-	/usr/bin/indent -npro -kr -ci2 -ss -psl -ip4 -i2 -cs -l80 -lc75 -nut \
+	 -npro -kr -ci2 -ss -psl -ip4 -i2 -cs -l80 -lc75 -nut \
 	-T accent_info -T acsflag -T aig_func -T ALIST -T ansi_data \
 	-T ansi_string -T atr_err -T ATRALIAS -T ATTR -T BIO -T BOOL \
 	-T bool -T boolexp -T boolexp_type -T BUFFERQ -T bvm_opcode \

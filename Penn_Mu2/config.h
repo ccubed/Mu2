@@ -66,9 +66,9 @@
 
 /* Libraries */
 
-#define HAVE_MYSQL 1
+/* #undef HAVE_MYSQL */
 
-#define HAVE_POSTGRESQL 1
+/* #undef HAVE_POSTGRESQL */
 
 #define HAVE_SQLITE3 /**/
 
@@ -78,16 +78,16 @@
 
 #define HAVE_PCRE 1
 
-/* #undef HAVE_EVENT2_EVENT_H */
+#define HAVE_EVENT2_EVENT_H 1
 
-/* #undef HAVE_EVENT2_DNS_H */
+#define HAVE_EVENT2_DNS_H 1
 
 #if defined(HAVE_EVENT2_EVENT_H) && defined(HAVE_EVENT2_DNS_H)
 
 /* Only define if it looks like libevent2 is installed. (Debian and
  * derived distros only have 1.X) */
 
-/* #undef HAVE_LIBEVENT_CORE */
+#define HAVE_LIBEVENT_CORE 1
 
 #endif
 
@@ -324,17 +324,17 @@ typedef bool _Bool;
 
 #define INFO_SLAVE 1
 
-/* #undef SSL_SLAVE */
+#define SSL_SLAVE 1
 
 #define HAVE_UPTIME 1
 
 /* Path to uptime */
 #define UPTIME "/usr/bin/uptime"
 
-#define HAVE_SENDMAIL 1
+/* #undef HAVE_SENDMAIL */
 
 /* Path to sendmail */
-#define SENDMAIL "/usr/sbin/sendmail"
+/* #undef SENDMAIL */
 
 /* #undef HAVE_ED */
 /* #undef ED_PATH */

@@ -13,9 +13,9 @@
 # These come from Configure
 perl=/usr/bin/perl
 test=/usr/bin/test
-cat=/bin/cat
-rm=/bin/rm
-echo=/bin/echo
+cat=/usr/bin/cat
+rm=/usr/bin/rm
+echo=/usr/bin/echo
 
 # Force a standard locale for sorting purposes
 LC_ALL=C
