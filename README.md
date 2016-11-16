@@ -11,5 +11,5 @@ Welcome to a +request system that actually helps you work instead of hindering y
 * https://github.com/ccubed/Mu2/tree/master/Jobs *
 
 ## Arc
-What if we stored player sheets in a database? Besides the obvious benefits, that would make accessing them from outside the game immediately easier and more accesible. Welcome to Arc. Arc is a system for defining categories of stats and storing those in the database. It then stores the player's own attributes in the database so that they can be queried at any time. Additionally, this approach makes statistical analysis of individual stats trivial.
+What if we stored player sheets in a database? Besides the obvious benefits, that would make accessing them from outside the game immediately easier. Welcome to Arc. Arc is a system for defining categories of stats and storing those in the database. It then stores the player's own attributes in the database so that they can be queried at any time. Additionally, this approach makes statistical analysis of individual stats trivial.
 * https://github.com/ccubed/Mu2/tree/master/Database%20Stats *

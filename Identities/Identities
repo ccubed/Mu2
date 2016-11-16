@@ -1,0 +1,9 @@
+@@	Coded by: Gizmo AKA Ourea, Alzie, Oukranos
+@@	Email: ccubed.techno@gmail.com
+@@----------------------------------------------------------------------------
+@@	Purpose: Separation of players and characters. Allows one player to control many characters.
+@@----------------------------------------------------------------------------
+
+@create Identities
+@set Identities=Wizard !no_c
+@power Identities=SQL_OK
